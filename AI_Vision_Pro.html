@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Vision Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+body{min-height:100vh;background:linear-gradient(-45deg,#0f172a,#1e1b4b,#312e81,#0f172a);background-size:400% 400%;animation:bg 15s ease infinite;color:white;overflow-x:hidden}
+@keyframes bg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.blob{position:fixed;border-radius:50%;filter:blur(120px);z-index:-1}
+.blob1{width:300px;height:300px;background:#38bdf8;top:0;left:0}
+.blob2{width:350px;height:350px;background:#8b5cf6;bottom:0;right:0}
+.navbar{display:flex;justify-content:space-between;align-items:center;padding:20px 8%}
+.logo{font-size:28px;font-weight:700}.menu{display:flex;gap:25px}.menu a{color:white;text-decoration:none}
+.hero{padding:50px 20px;text-align:center}.hero h1{font-size:4rem;margin-bottom:15px}.hero span{color:#38bdf8}
+.hero p{color:#cbd5e1;max-width:700px;margin:auto}
+.main-box{max-width:1100px;margin:40px auto;padding:25px;background:rgba(255,255,255,.08);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:25px}
+.controls{display:flex;gap:10px;flex-wrap:wrap}input{flex:1;padding:15px;border:none;outline:none;border-radius:12px;font-size:16px}
+select{padding:15px;border:none;border-radius:12px}button{padding:15px 20px;border:none;border-radius:12px;cursor:pointer;font-weight:600;transition:.3s}button:hover{transform:translateY(-3px)}
+.generate{background:#38bdf8;color:white}.random{background:#8b5cf6;color:white}.copy{background:#10b981;color:white}.clear{background:#ef4444;color:white}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.chips button{background:rgba(255,255,255,.1);color:white}
+.loader{display:none;text-align:center;font-size:20px;margin:25px}
+.gallery{margin-top:30px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.card{background:rgba(255,255,255,.08);padding:10px;border-radius:15px;overflow:hidden}.card img{width:100%;height:300px;object-fit:cover;border-radius:12px;cursor:pointer}
+.prompt-text{padding:10px;font-size:14px;color:#cbd5e1}.download-btn{width:100%;margin-top:10px;background:#22c55e;color:white}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.9);justify-content:center;align-items:center;z-index:1000}
+.modal img{max-width:90%;max-height:90%;border-radius:15px}.close{position:absolute;top:20px;right:30px;font-size:40px;cursor:pointer}
+@media(max-width:768px){.hero h1{font-size:2.5rem}.controls{flex-direction:column}.menu{display:none}}
+</style>
+</head>
+<body>
+<div class="blob blob1"></div><div class="blob blob2"></div>
+<nav class="navbar">
+<div class="logo">✨ AI Vision Pro</div>
+<div class="menu"><a href="#">Home</a><a href="#">Gallery</a><a href="#">Features</a><a href="#">About</a></div>
+</nav>
+<section class="hero"><h1>Create Amazing <span>AI Art</span></h1><p>Generate beautiful AI images from text prompts in seconds.</p></section>
+<div class="main-box">
+<div class="controls">
+<input type="text" id="prompt" placeholder="Describe your image...">
+<select id="style"><option>Realistic</option><option>Anime</option><option>3D Render</option><option>Cartoon</option><option>Fantasy</option></select>
+<button class="generate" onclick="generateImage()">Generate</button>
+<button class="random" onclick="randomPrompt()">Random</button>
+<button class="copy" onclick="copyPrompt()">Copy</button>
+<button class="clear" onclick="clearGallery()">Clear</button>
+</div>
+<div class="chips">
+<button onclick="setPrompt('Cyberpunk city at sunset')">Cyberpunk</button>
+<button onclick="setPrompt('Anime warrior girl')">Anime</button>
+<button onclick="setPrompt('Luxury sports car')">Sports Car</button>
+<button onclick="setPrompt('Fantasy castle in sky')">Fantasy</button>
+<button onclick="setPrompt('Space station on Mars')">Space</button>
+</div>
+<div class="loader" id="loader">⏳ Generating AI Image...</div>
+<div class="gallery" id="gallery"></div>
+</div>
+<div class="modal" id="modal"><span class="close" onclick="closeModal()">×</span><img id="modalImg"></div>
+<script>
+const promptBox=document.getElementById("prompt");
+const suggestions=["Cyberpunk city at sunset","Anime warrior girl","Luxury sports car","Fantasy castle","Dragon flying over mountains","Robot samurai","Space station on Mars","Underwater kingdom"];
+function setPrompt(text){promptBox.value=text}
+function randomPrompt(){promptBox.value=suggestions[Math.floor(Math.random()*suggestions.length)]}
+function copyPrompt(){navigator.clipboard.writeText(promptBox.value);alert("Prompt copied")}
+function clearGallery(){document.getElementById("gallery").innerHTML=""}
+promptBox.addEventListener("keypress",e=>{if(e.key==="Enter")generateImage()});
+function generateImage(){
+const prompt=promptBox.value.trim();
+if(!prompt){alert("Enter a prompt");return}
+const style=document.getElementById("style").value;
+document.getElementById("loader").style.display="block";
+const finalPrompt=style+" "+prompt;
+const url=`https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?seed=${Math.random()}`;
+const img=new Image();
+img.onload=()=>{
+document.getElementById("loader").style.display="none";
+const card=document.createElement("div");card.className="card";
+card.innerHTML=`<img src="${url}" onclick="openModal('${url}')"><button class="download-btn" onclick="window.open('${url}')">Download</button><div class="prompt-text">${finalPrompt}</div>`;
+document.getElementById("gallery").prepend(card);
+};
+img.onerror=()=>{document.getElementById("loader").style.display="none";alert("Image generation failed. Please try again.")};
+img.src=url;
+}
+function openModal(src){document.getElementById("modal").style.display="flex";document.getElementById("modalImg").src=src}
+function closeModal(){document.getElementById("modal").style.display="none"}
+</script>
+</body>
+</html>
